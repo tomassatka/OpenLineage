@@ -208,7 +208,7 @@ jobs:
       - *install_python_client
       - *install_integration_common
       - run: pip install -e .[dev]
-      - run: flake8 --exclude integration
+      - run: flake8 --exclude integration,integration-2
       - run: airflow initdb
       - run: pytest --cov=openlineage tests/
       - run: bash <(curl -s https://codecov.io/bash)
@@ -237,6 +237,17 @@ jobs:
       - run: docker build -f airflow/Dockerfile.tests -t openlineage-airflow-base .
       - run: ./airflow/tests/integration/docker/up.sh
 
+  integration-test-airflow-2:
+    working_directory: ~/openlineage/integration/
+    machine: true
+    steps:
+      - *checkout_project_root
+      - run: ../.circleci/get-docker-compose.sh
+      - run: cp -r ../client/python python
+      - run: docker build -f airflow/Dockerfile.tests -t openlineage-airflow-base .
+      - run: ./airflow/tests/integration-2/docker/up.sh
+
+
   release-python:
     working_directory: ~/openlineage
     docker:
@@ -264,7 +275,9 @@ workflows:
       - integration-test-airflow:
           requires:
             - test-integration-airflow
-
+      - integration-test-airflow-2:
+          requires:
+            - test-integration-airflow
       #publish snapshots
       - publish-snapshot-java-client:
           <<: *only-on-main-without-release-tag
