@@ -1,5 +1,6 @@
 package io.openlineage.client;
 
+import static io.openlineage.client.TypeResolver.camelCase;
 import static io.openlineage.client.TypeResolver.titleCase;
 import static javax.lang.model.element.Modifier.ABSTRACT;
 import static javax.lang.model.element.Modifier.FINAL;
@@ -87,10 +88,6 @@ public class JavaPoetGenerator {
     Collection<ObjectResolvedType> types = typeResolver.getTypes();
     for (ObjectResolvedType type : types) {
 
-      if (typeResolver.getBaseTypes().contains(type.getName())) {
-        TypeSpec intrfc = declareBaseTypeSpec(type);
-        containerTypeBuilder.addType(intrfc);
-      } else {
         TypeSpec builderClassSpec = builderClass(type);
         TypeSpec modelClassSpec = modelClass(type);
 
@@ -104,7 +101,6 @@ public class JavaPoetGenerator {
         containerTypeBuilder.addType(modelClassSpec);
         containerTypeBuilder.addType(builderClassSpec);
       }
-    }
   }
 
   private MethodSpec modelConstructor(ObjectResolvedType type) {
@@ -139,11 +135,19 @@ public class JavaPoetGenerator {
   private TypeSpec modelClass(ObjectResolvedType type) {
     TypeSpec.Builder modelClassBuilder = TypeSpec.classBuilder(type.getName())
         .addModifiers(STATIC, PUBLIC);
-    for (String parent : type.getParents()) {
-      modelClassBuilder.addSuperinterface(ClassName.get(CONTAINER_CLASS, parent));
+    for (ObjectResolvedType parent : type.getParents()) {
+      modelClassBuilder.superclass(ClassName.get(CONTAINER_CLASS, parent.getName()));
+      String fieldName = camelCase(parent.getName());
+      for (ResolvedField f : parent.getProperties()) {
+        MethodSpec getter = getter(f)
+            .addModifiers(PUBLIC)
+            .addCode("return $N.get$N();", fieldName, titleCase(f.getName()))
+            .build();
+        modelClassBuilder.addMethod(getter);
+      }
     }
     //adds possibility to extend CustomFacet
-    if (!type.getName().equals("CustomFacet")) {
+    if (!type.getName().equals("CustomFacet") && !typeResolver.getBaseTypes().contains(type.getName())) {
       modelClassBuilder.addModifiers(FINAL);
     }
 
@@ -278,15 +282,17 @@ public class JavaPoetGenerator {
   }
 
   private TypeSpec declareBaseTypeSpec(ObjectResolvedType type) {
-    TypeSpec.Builder interfaceBuilder = TypeSpec.interfaceBuilder(type.getName())
+    TypeSpec.Builder baseClass = TypeSpec.classBuilder(type.getName())
         .addModifiers(STATIC, PUBLIC);
     for (ResolvedField f : type.getProperties()) {
+      baseClass.addField(getTypeName(f.getType()), f.getName(), PRIVATE, FINAL);
       MethodSpec getter = getter(f)
-          .addModifiers(ABSTRACT, PUBLIC)
+          .addModifiers(PUBLIC)
+          .addCode("return $N;", f.getName())
           .build();
-      interfaceBuilder.addMethod(getter);
+      baseClass.addMethod(getter);
     }
-    TypeSpec intrfc = interfaceBuilder.build();
+    TypeSpec intrfc = baseClass.build();
     return intrfc;
   }
 

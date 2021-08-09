@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -115,17 +116,22 @@ public class TypeResolver {
         List<ResolvedField> combinedProperties = new ArrayList<>();
         boolean additionalProperties = false;
         ResolvedType additionalPropertiesType = null;
-        Set<String> parents = new LinkedHashSet<String>();
+        Set<ObjectResolvedType> parents = new LinkedHashSet<ObjectResolvedType>();
         for (Type child : children) {
           ObjectResolvedType resolvedChildType = (ObjectResolvedType) visit(child);
           List<ObjectType> objectTypes = resolvedChildType.getObjectTypes();
           if (!currentName.equals(resolvedChildType.getName())) {
             // base interface
             baseTypes.add(resolvedChildType.getName());
-            parents.add(resolvedChildType.getName());
+            parents.add(resolvedChildType);
           }
           castChildren.addAll(objectTypes);
-          combinedProperties.addAll(resolvedChildType.getProperties());
+          if (child instanceof RefType) {
+            combinedProperties.add(new ResolvedField(new Field(camelCase(resolvedChildType.getName()), child, ""), resolvedChildType));
+          } else {
+            combinedProperties.addAll(resolvedChildType.getProperties());
+          }
+
           if (resolvedChildType.hasAdditionalProperties()) {
             additionalProperties = true;
             if (resolvedChildType.getAdditionalPropertiesType() != null) {
@@ -181,6 +187,10 @@ public class TypeResolver {
 
   public static String titleCase(String name) {
     return name.substring(0, 1).toUpperCase() + name.substring(1);
+  }
+
+  public static String camelCase(String name) {
+    return name.substring(0, 1).toLowerCase() + name.substring(1);
   }
 
   public Collection<ObjectResolvedType> getTypes() {
@@ -266,9 +276,9 @@ public class TypeResolver {
     private final List<ResolvedField> properties;
     private final boolean additionalProperties;
     private final ResolvedType additionalPropertiesType;
-    private final Set<String> parents;
+    private final Set<ObjectResolvedType> parents;
 
-    public ObjectResolvedType(List<ObjectType> objectTypes, String name, Set<String> parents, List<ResolvedField> properties, boolean additionalProperties, ResolvedType additionalPropertiesType) {
+    public ObjectResolvedType(List<ObjectType> objectTypes, String name, Set<ObjectResolvedType> parents, List<ResolvedField> properties, boolean additionalProperties, ResolvedType additionalPropertiesType) {
       super();
       this.objectTypes = objectTypes;
       this.name = name;
@@ -286,7 +296,7 @@ public class TypeResolver {
       return name;
     }
 
-    public Set<String> getParents() {
+    public Set<ObjectResolvedType> getParents() {
       return parents;
     }
 
