@@ -1,3 +1,4 @@
+import logging
 from typing import Type, Optional
 
 from openlineage.airflow.extractors.base import BaseExtractor
@@ -42,11 +43,14 @@ class Extractors:
         }
 
     def get_extractor_class(self, clazz: Type) -> Optional[Type[BaseExtractor]]:
-        if clazz in self.extractors:
-            return self.extractors[clazz]
+        name = clazz.__name__
+        logging.getLogger().info(f"{name} - \n{self.extractors}")
+        if name in self.extractors:
+            return self.extractors[name]
         return None
 
     def get_patcher_class(self, clazz: Type) -> Optional[Type[BaseExtractor]]:
-        if clazz in self.patchers:
-            return self.patchers[clazz]
+        name = clazz.__name__
+        if name in self.patchers:
+            return self.patchers[name]
         return None

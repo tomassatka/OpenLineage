@@ -13,11 +13,9 @@
 import json
 import logging
 import traceback
-from typing import Optional
+from typing import Optional, Type
 
 import attr
-
-from airflow.models import BaseOperator
 
 from openlineage.common.provider.bigquery import BigQueryDatasetsProvider, BigQueryErrorRunFacet
 from openlineage.common.sql import SqlParser
@@ -45,7 +43,7 @@ class SqlContext:
 def try_load_operator():
     try:
         from airflow.contrib.operators.bigquery_operator import BigQueryOperator
-        return BigQueryOperator
+        return 'BigQueryOperator'
     except Exception:
         log.warn('Did not find bigquery_operator library or failed to import it')
         return None
@@ -57,7 +55,7 @@ Operator = try_load_operator()
 class BigQueryExtractor(BaseExtractor):
     operator_class = Operator
 
-    def __init__(self, operator: BaseOperator):
+    def __init__(self, operator: Type[Operator]):
         super().__init__(operator)
 
     def extract(self) -> Optional[StepMetadata]:

@@ -14,7 +14,6 @@ from typing import Optional
 from urllib.parse import urlparse
 
 from airflow.hooks.postgres_hook import PostgresHook
-from airflow.operators.postgres_operator import PostgresOperator
 
 from openlineage.airflow.utils import get_normalized_postgres_connection_uri, get_connection
 from openlineage.airflow.extractors.base import (
@@ -39,7 +38,7 @@ _UDT_NAME = 4
 
 
 class PostgresExtractor(BaseExtractor):
-    operator_class = PostgresOperator
+    operator_class = 'PostgresOperator'
     default_schema = 'public'
 
     def __init__(self, operator):

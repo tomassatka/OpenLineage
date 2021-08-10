@@ -14,6 +14,6 @@
 
 __author__ = """OpenLineage"""
 __version__ = "0.0.1"
-__all__ = ["DAG"]
+# __all__ = ["DAG"]
 
-from openlineage.airflow.dag import DAG
+# from openlineage.airflow.dag import DAG

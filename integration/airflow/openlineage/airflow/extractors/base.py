@@ -2,7 +2,6 @@ from abc import ABC, abstractmethod
 from typing import List, Dict, Type, Union, Optional
 from pkg_resources import parse_version
 
-from airflow.models import BaseOperator
 from airflow.version import version as AIRFLOW_VERSION
 
 from openlineage.client.facet import BaseFacet
@@ -54,7 +53,7 @@ class StepMetadata:
 
 
 class BaseExtractor(ABC, LoggingMixin):
-    operator_class: Type[BaseOperator] = None
+    operator_class: Type['BaseOperator'] = None
     operator: operator_class = None
 
     def __init__(self, operator):
