@@ -53,7 +53,7 @@ class StepMetadata:
 
 
 class BaseExtractor(ABC, LoggingMixin):
-    operator_class: Type['BaseOperator'] = None
+    operator_class: Type['BaseOperator'] = None  # noqa
     operator: operator_class = None
 
     def __init__(self, operator):

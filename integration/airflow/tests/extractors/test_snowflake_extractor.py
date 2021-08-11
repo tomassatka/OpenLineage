@@ -15,6 +15,7 @@ from unittest import mock
 
 from airflow.contrib.operators.snowflake_operator import SnowflakeOperator
 from airflow.models import Connection
+from airflow import DAG
 from airflow.utils.dates import days_ago
 
 from openlineage.common.models import (
@@ -23,7 +24,6 @@ from openlineage.common.models import (
     DbColumn
 )
 from openlineage.common.dataset import Source, Dataset
-from openlineage.airflow import DAG
 from openlineage.airflow.extractors.snowflake_extractor import SnowflakeExtractor
 
 CONN_ID = 'food_delivery_db'

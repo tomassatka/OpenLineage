@@ -1,9 +1,14 @@
 import logging
+import uuid
+import time
 from typing import Union, Optional, List
 
 from airflow.lineage.backend import LineageBackend
+
+from openlineage.airflow.adapter import OpenLineageAdapter
 from openlineage.airflow.extractors.extractors import Extractors
 from openlineage.airflow.extractors.base import StepMetadata, BaseExtractor
+from openlineage.airflow.utils import DagUtils, get_location, get_custom_facets
 
 
 class OpenLineageBackend(LineageBackend):
@@ -11,6 +16,7 @@ class OpenLineageBackend(LineageBackend):
         self.extractors = {}
         self.extractor_mapper = Extractors()
         self.log = logging.getLogger()
+        self.adapter = OpenLineageAdapter()
 
     def send_lineage(
         self,
@@ -20,13 +26,41 @@ class OpenLineageBackend(LineageBackend):
         context=None
     ):
         self.log.info(f"{operator}\n{inlets}\n{outlets}\n{context}\n")
-        self.log.info(
-            f"""Metadata: {self._extract_metadata(
-                dag_id=context['dag'].dag_id,
-                dagrun=context['dag_run'],
-                task=operator,
-                task_instance=context['task_instance']
-            )}"""
+        dag = context['dag']
+        dagrun = context['dag_run']
+        task_instance = context['task_instance']
+
+        run_id = str(uuid.uuid4())
+        job_name = self._openlineage_job_name(dag.dag_id, operator.task_id)
+
+        step = self._extract_metadata(
+            dag_id=dag.dag_id,
+            dagrun=dagrun,
+            task=operator,
+            task_instance=context['task_instance']
+        )
+
+        self.adapter.start_task(
+            run_id=run_id,
+            job_name=job_name,
+            job_description=dag.description,
+            event_time=DagUtils.to_iso_8601(self._now_ms()),
+            parent_run_id=dagrun.run_id,
+            code_location=self._get_location(operator),
+            nominal_start_time=DagUtils.get_start_time(dagrun.execution_date),
+            nominal_end_time=DagUtils.get_end_time(
+                dagrun.execution_date,
+                dag.following_schedule(dagrun.execution_date)
+            ),
+            step=step,
+            run_facets={**step.run_facets, **get_custom_facets(operator, dagrun.external_trigger)}
+        )
+
+        self.adapter.complete_task(
+            run_id=run_id,
+            job_name=job_name,
+            end_time=DagUtils.to_iso_8601(task_instance.end_date),
+            step=step
         )
 
     def _extract_metadata(self, dag_id, dagrun, task, task_instance=None) -> StepMetadata:
@@ -92,3 +126,17 @@ class OpenLineageBackend(LineageBackend):
     @staticmethod
     def _openlineage_job_name(dag_id: str, task_id: str) -> str:
         return f'{dag_id}.{task_id}'
+
+    @staticmethod
+    def _get_location(task):
+        try:
+            if hasattr(task, 'file_path') and task.file_path:
+                return get_location(task.file_path)
+            else:
+                return get_location(task.dag.fileloc)
+        except Exception:
+            return None
+
+    @staticmethod
+    def _now_ms():
+        return int(round(time.time() * 1000))

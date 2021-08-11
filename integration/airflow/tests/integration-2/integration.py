@@ -22,6 +22,8 @@ from airflow.utils.state import State as DagState
 
 from retrying import retry
 
+from openlineage.client.serde import Serde
+
 logging.basicConfig(
     format="[%(asctime)s] {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
@@ -76,11 +78,12 @@ def match(expected, request):
                 return False
         elif isinstance(v, list):
             if len(v) != len(request[k]):
-                log.error(f"For list of key {k}, length of lists does"
-                          f" not match: {len(v)} {len(request[k])}")
+                log.error(f"For list of key {k}, length of lists does not match: "
+                          f"{len(v)} {len(request[k])}\n{v}\n{request[k]}")
                 return False
-            if not all([match(x, y) for x, y in zip(v, request[k])]):
-                return False
+            for x, y in zip(v, request[k]):
+                if not all([match(x, y) ]):
+                    return False
         elif v != request[k]:
             log.error(f"For key {k}, value {v} not in event {request[k]}"
                       f"\nExpected {expected}, request {request}")

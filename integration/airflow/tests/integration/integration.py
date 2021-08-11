@@ -76,14 +76,14 @@ def match(expected, request):
                 return False
         elif isinstance(v, list):
             if len(v) != len(request[k]):
-                log.error(f"For list of key {k}, length of lists does"
-                             f" not match: {len(v)} {len(request[k])}")
+                log.error(f"For list of key {k}, length of lists does not match: "
+                          f"{len(v)} {len(request[k])}\n{v}\n{request[k]}")
                 return False
             if not all([match(x, y) for x, y in zip(v, request[k])]):
                 return False
         elif v != request[k]:
             log.error(f"For key {k}, value {v} not in event {request[k]}"
-                         f"\nExpected {expected}, request {request}")
+                      f"\nExpected {expected}, request {request}")
             return False
     return True
 
@@ -116,7 +116,7 @@ def check_events_emitted():
     r.raise_for_status()
     received_requests = r.json()
 
-    check_matches(expected_requests, received_requests)
+    return check_matches(expected_requests, received_requests)
 
 
 def setup_db():

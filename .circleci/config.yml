@@ -209,7 +209,7 @@ jobs:
       - *install_integration_common
       - run: pip install -e .[dev]
       - run: flake8 --exclude integration,integration-2
-      - run: airflow initdb
+      - run: airflow db init
       - run: pytest --cov=openlineage tests/
       - run: bash <(curl -s https://codecov.io/bash)
 
@@ -226,16 +226,6 @@ jobs:
           paths:
             - ./dist/*.whl
             - ./dist/*.tar.gz
-
-  integration-test-airflow:
-    working_directory: ~/openlineage/integration/
-    machine: true
-    steps:
-      - *checkout_project_root
-      - run: ../.circleci/get-docker-compose.sh
-      - run: cp -r ../client/python python
-      - run: docker build -f airflow/Dockerfile.tests -t openlineage-airflow-base .
-      - run: ./airflow/tests/integration/docker/up.sh
 
   integration-test-airflow-2:
     working_directory: ~/openlineage/integration/
@@ -272,9 +262,6 @@ workflows:
           requires:
             - build-integration-spark
       - test-integration-airflow
-      - integration-test-airflow:
-          requires:
-            - test-integration-airflow
       - integration-test-airflow-2:
           requires:
             - test-integration-airflow

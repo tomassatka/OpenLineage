@@ -15,10 +15,10 @@ from unittest import mock
 
 from airflow.hooks.postgres_hook import PostgresHook
 from airflow.models import Connection
-from airflow.operators.postgres_operator import PostgresOperator
+from airflow.providers.postgres.operators.postgres import PostgresOperator
 from airflow.utils.dates import days_ago
+from airflow import DAG
 
-from openlineage.airflow import DAG
 from openlineage.common.models import (
     DbTableName,
     DbTableSchema,

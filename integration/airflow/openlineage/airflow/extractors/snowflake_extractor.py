@@ -9,7 +9,7 @@ log = logging.getLogger(__file__)
 # Snowflake is optional dependency.
 def try_load_operator():
     try:
-        from airflow.contrib.operators.snowflake_operator import SnowflakeOperator
+        from airflow.contrib.operators.snowflake_operator import SnowflakeOperator  # noqa
         return 'SnowflakeOperator'
     except Exception:
         log.warn('Did not find snowflake_operator library or failed to import it')

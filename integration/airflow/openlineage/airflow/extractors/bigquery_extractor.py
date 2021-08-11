@@ -42,7 +42,7 @@ class SqlContext:
 
 def try_load_operator():
     try:
-        from airflow.contrib.operators.bigquery_operator import BigQueryOperator
+        from airflow.contrib.operators.bigquery_operator import BigQueryOperator  # noqa
         return 'BigQueryOperator'
     except Exception:
         log.warn('Did not find bigquery_operator library or failed to import it')

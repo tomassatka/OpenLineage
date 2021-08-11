@@ -9,13 +9,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import logging
 from contextlib import closing
 from typing import Optional
 from urllib.parse import urlparse
 
-from airflow.hooks.postgres_hook import PostgresHook
+from airflow.providers.postgres.hooks.postgres import PostgresHook
 
-from openlineage.airflow.utils import get_normalized_postgres_connection_uri, get_connection
+from openlineage.airflow.utils import (
+    get_normalized_postgres_connection_uri,
+    get_connection
+)
 from openlineage.airflow.extractors.base import (
     BaseExtractor,
     StepMetadata
@@ -35,6 +39,9 @@ _ORDINAL_POSITION = 3
 # Use 'udt_name' which is the underlying type of column
 # (ex: int4, timestamp, varchar, etc)
 _UDT_NAME = 4
+
+
+log = logging.getLogger()
 
 
 class PostgresExtractor(BaseExtractor):

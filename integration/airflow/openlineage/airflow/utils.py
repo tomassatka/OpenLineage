@@ -158,7 +158,9 @@ def get_connection(conn_id, session=None):
     from airflow.models import Connection
     conn_uri = os.environ.get('AIRFLOW_CONN_' + conn_id.upper())
     if conn_uri:
-        return Connection(conn_uri)
+        conn = Connection()
+        conn.parse_from_uri(uri=conn_uri)
+        return conn
 
     return (session
             .query(Connection)
