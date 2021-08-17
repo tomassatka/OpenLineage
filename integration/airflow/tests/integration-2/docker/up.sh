@@ -34,8 +34,9 @@ echo "${OPENLINEAGE_AIRFLOW_WHL}" > requirements.txt
 
 # Add revision to integration-requirements.txt
 cat > integration-requirements.txt <<EOL
-apache-airflow==2.1.1
+apache-airflow==2.1.2
 apache-airflow-providers-postgres==2.0.0
+apache-airflow-providers-google==5.0.0
 requests==2.24.0
 psycopg2-binary==2.8.6
 httplib2>=0.18.1

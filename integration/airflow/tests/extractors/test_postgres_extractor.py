@@ -150,7 +150,7 @@ def test_extract_authority_uri(get_connection, mock_get_table_schemas):
         [[DB_TABLE_SCHEMA], NO_DB_TABLE_SCHEMA]
 
     conn = Connection()
-    conn.parse_from_uri(CONN_URI)
+    conn.parse_from_uri(uri=CONN_URI)
     get_connection.return_value = conn
 
     expected_inputs = [
@@ -181,6 +181,9 @@ def test_get_table_schemas(mock_conn):
     # (1) Define a simple hook class for testing
     class TestPostgresHook(PostgresHook):
         conn_name_attr = 'test_conn_id'
+        def __init__(self, *args, **kwargs):
+            super(TestPostgresHook, self).__init__(*args, **kwargs)
+            self.schema = ''
 
     # (2) Mock calls to postgres
     rows = [

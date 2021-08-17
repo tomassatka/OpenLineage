@@ -14,7 +14,7 @@ import logging
 from collections import defaultdict
 
 import attr
-from typing import Optional, Any, Dict, List
+from typing import Optional, Any, Dict, List, Type
 
 from openlineage.client.facet import BaseFacet
 
@@ -48,7 +48,6 @@ except Exception:
     GreatExpectationsOperator = None
     log.warning('Did not find great_expectations_provider library or failed to import it')
     _has_great_expectations = False
-
 
 @attr.s
 class ExpectationsParserResult:
@@ -108,12 +107,14 @@ class GreatExpectationsExtractorImpl(BaseExtractor):
     Great Expectations extractor extracts validation data from CheckpointResult object and
     parses it via ExpectationsParsers. Results are used to prepare data quality facet.
     """
-    operator_class = GreatExpectationsOperator
-
     def __init__(self, operator):
         super().__init__(operator)
         self.operator._extractor = self
         self.result = None
+
+    @classmethod
+    def get_operator_classnames(cls) -> List[Type]:
+        return [GreatExpectationsOperator.__name__] if GreatExpectationsOperator else []
 
     def store_result(self, result):
         self.result = result
@@ -442,3 +443,7 @@ else:
     class GreatExpectationsExtractor:
         def __init__(self):
             raise RuntimeError('Great Expectations provider not found')
+
+        @classmethod
+        def get_operator_classnames(cls) -> List[Type]:
+            return []

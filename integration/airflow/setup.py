@@ -41,8 +41,8 @@ extras_require = {
         "Flask-SQLAlchemy",  # must be set to 2.4.* for airflow tests compatibility
         "pandas-gbq",       # must be set to 0.14.* for airflow tests compatibility
         "snowflake-connector-python",
-        "apache-airflow==2.1.1",
-        "apache-airflow-providers-postgres==2.1.0",
+        "apache-airflow==2.1.2",
+        "apache-airflow-providers-postgres==2.0.0",
         "apache-airflow-providers-snowflake==2.1.0",
         "apache-airflow-providers-google==5.0.0",
         "airflow-provider-great-expectations==0.0.6",

@@ -103,7 +103,7 @@ def test_extract(get_connection, mock_get_table_schemas):
         [[DB_TABLE_SCHEMA], NO_DB_TABLE_SCHEMA]
 
     conn = Connection()
-    conn.parse_from_uri(CONN_URI)
+    conn.parse_from_uri(uri=CONN_URI)
     get_connection.return_value = conn
 
     TASK.get_hook = mock.MagicMock()

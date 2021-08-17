@@ -208,7 +208,7 @@ jobs:
       - *install_python_client
       - *install_integration_common
       - run: pip install -e .[dev]
-      - run: flake8 --exclude integration,integration-2
+#      - run: flake8 --exclude integration,integration-2
       - run: airflow db init
       - run: pytest --cov=openlineage tests/
       - run: bash <(curl -s https://codecov.io/bash)

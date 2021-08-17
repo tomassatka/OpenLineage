@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, Dict, Type, Union, Optional
+from typing import List, Dict, Union, Optional
 from pkg_resources import parse_version
 
 from airflow.version import version as AIRFLOW_VERSION
@@ -53,9 +53,6 @@ class StepMetadata:
 
 
 class BaseExtractor(ABC, LoggingMixin):
-    operator_class: Type['BaseOperator'] = None  # noqa
-    operator: operator_class = None
-
     def __init__(self, operator):
         self.operator = operator
         self.patch()
@@ -65,13 +62,12 @@ class BaseExtractor(ABC, LoggingMixin):
         pass
 
     @classmethod
-    def get_operator_class(cls):
-        return cls.operator_class
+    def get_operator_classnames(cls) -> List[str]:
+        raise NotImplementedError()
 
     def validate(self):
         # TODO: maybe we should also enforce the module
-        assert (self.operator_class is not None and
-                self.operator.__class__ == self.operator_class)
+        assert (self.operator.__class__.__name__ in self.get_operator_classnames())
 
     @abstractmethod
     def extract(self) -> Union[Optional[StepMetadata], List[StepMetadata]]:

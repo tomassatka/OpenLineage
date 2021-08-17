@@ -25,7 +25,6 @@ class OpenLineageBackend(LineageBackend):
         outlets=None,
         context=None
     ):
-        self.log.info(f"{operator}\n{inlets}\n{outlets}\n{context}\n")
         dag = context['dag']
         dagrun = context['dag_run']
         task_instance = context['task_instance']
@@ -97,8 +96,7 @@ class OpenLineageBackend(LineageBackend):
                     f'Failed to extract metadata {e} {task_info}',
                 )
         else:
-            self.log.warning(
-                f'Unable to find an extractor. {task_info}')
+            self.log.warning(f'Unable to find an extractor. {task_info}\n{self.extractor_mapper.extractors}')
 
     def _extract(self, extractor, task_instance) -> \
             Union[Optional[StepMetadata], List[StepMetadata]]:

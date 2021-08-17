@@ -28,23 +28,21 @@ class Extractors:
     """
     def __init__(self):
         # Do not expose extractors relying on external dependencies that are not installed
-        self.extractors = {
-            extractor.operator_class: extractor
-            for extractor
-            in _extractors
-            if getattr(extractor, 'operator_class', None) is not None
-        }
+        self.extractors = {}
+        self.patchers = {}
 
-        self.patchers = {
-            extractor.operator_class: extractor
-            for extractor
-            in _patchers
-            if getattr(extractor, 'operator_class', None) is not None
-        }
+        for extractor in _extractors:
+            for operator_class in extractor.get_operator_classnames():
+                self.extractors[operator_class] = extractor
+
+        for patcher in _patchers:
+            for operator_class in patcher.get_operator_classnames():
+                self.patchers[operator_class] = patcher
+
+        logging.getLogger().warning(self.extractors)
 
     def get_extractor_class(self, clazz: Type) -> Optional[Type[BaseExtractor]]:
         name = clazz.__name__
-        logging.getLogger().info(f"{name} - \n{self.extractors}")
         if name in self.extractors:
             return self.extractors[name]
         return None

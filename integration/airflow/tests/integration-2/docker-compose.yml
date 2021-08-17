@@ -18,7 +18,6 @@ x-airflow-common: &airflow-common
   volumes:
     - ./airflow/config/log_config.py:/opt/airflow/config/log_config.py
     - ./airflow/dags:/opt/airflow/dags
-    - ./airflow/logs:/opt/airflow/logs:rw
 
 services:
   integration:

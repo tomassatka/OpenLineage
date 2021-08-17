@@ -11,10 +11,8 @@
 # limitations under the License.
 import logging
 from contextlib import closing
-from typing import Optional
+from typing import Optional, List
 from urllib.parse import urlparse
-
-from airflow.providers.postgres.hooks.postgres import PostgresHook
 
 from openlineage.airflow.utils import (
     get_normalized_postgres_connection_uri,
@@ -45,12 +43,15 @@ log = logging.getLogger()
 
 
 class PostgresExtractor(BaseExtractor):
-    operator_class = 'PostgresOperator'
     default_schema = 'public'
 
     def __init__(self, operator):
         super().__init__(operator)
         self.conn = None
+
+    @classmethod
+    def get_operator_classnames(cls) -> List[str]:
+        return ['PostgresOperator']
 
     def extract(self) -> StepMetadata:
         # (1) Parse sql statement to obtain input / output tables.
@@ -140,6 +141,7 @@ class PostgresExtractor(BaseExtractor):
         """
 
     def _get_hook(self):
+        from airflow.providers.postgres.hooks.postgres import PostgresHook
         return PostgresHook(
             postgres_conn_id=self.operator.postgres_conn_id,
             schema=self.operator.database
