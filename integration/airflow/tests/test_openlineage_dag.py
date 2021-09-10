@@ -276,7 +276,7 @@ def test_lineage_run_id(mock_get_or_create_openlineage_client, session=None):
     ti = dagrun.get_task_instance(t1.task_id)
     ti.task = t1
     ti.run()
-    assert collector.task_id != ""
+    assert collector.task_id == "sadfasdf"
 
 
 class TestFixtureDummyOperator(DummyOperator):
