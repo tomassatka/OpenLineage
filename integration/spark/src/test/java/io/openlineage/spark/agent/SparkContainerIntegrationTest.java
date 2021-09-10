@@ -94,6 +94,24 @@ public class SparkContainerIntegrationTest {
         .withCommand(command);
   }
 
+  private static GenericContainer<?> makePysparkContainerWithDefaultConf(
+      String namespace, String command) {
+    return makePysparkContainer(
+        "--master",
+        "local",
+        "--conf",
+        "spark.openlineage.host=" + "http://openlineageclient:1080",
+        "--conf",
+        "spark.openlineage.url=" + "http://openlineageclient:1080/api/v1/namespaces/" + namespace,
+        "--conf",
+        "spark.extraListeners=" + OpenLineageSparkListener.class.getName(),
+        "--conf",
+        "spark.sql.warehouse.dir=/tmp/warehouse",
+        "--jars",
+        "/opt/libs/" + System.getProperty("openlineage.spark.jar"),
+        command);
+  }
+
   private static void consumeOutput(org.testcontainers.containers.output.OutputFrame of) {
     try {
       switch (of.getType()) {
@@ -112,33 +130,133 @@ public class SparkContainerIntegrationTest {
     }
   }
 
+  // @Test
+  // public void testPysparkWordCountWithCliArgs() throws IOException, InterruptedException {
+  //   pyspark =
+  //       makePysparkContainerWithDefaultConf(
+  //           "testPysparkWordCountWithCliArgs", "/opt/spark_scripts/spark_word_count.py");
+  //   pyspark.setWaitStrategy(Wait.forLogMessage(".*ShutdownHookManager: Shutdown hook called.*",
+  // 1));
+  //   pyspark.start();
+
+  //   Path eventFolder = Paths.get("integrations/container/");
+  //   String startEvent =
+  //       new
+  // String(readAllBytes(eventFolder.resolve("pysparkWordCountWithCliArgsStartEvent.json")))
+  //           .replaceAll(
+  //               "https://github.com/OpenLineage/OpenLineage/tree/\\$VERSION/integration/spark",
+  //               OpenLineageClient.OPEN_LINEAGE_CLIENT_URI.toString());
+  //   String completeEvent =
+  //       new String(
+  //
+  // readAllBytes(eventFolder.resolve("pysparkWordCountWithCliArgsCompleteEvent.json")))
+  //           .replaceAll(
+  //               "https://github.com/OpenLineage/OpenLineage/tree/\\$VERSION/integration/spark",
+  //               OpenLineageClient.OPEN_LINEAGE_CLIENT_URI.toString());
+  //   mockServerClient.verify(
+  //       request()
+  //           .withPath("/api/v1/lineage")
+  //           .withBody(json(startEvent, MatchType.ONLY_MATCHING_FIELDS)),
+  //       request()
+  //           .withPath("/api/v1/lineage")
+  //           .withBody(json(completeEvent, MatchType.ONLY_MATCHING_FIELDS)));
+  // }
+
+  // @Test
+  // public void testPysparkRddToTable() throws IOException, InterruptedException {
+  //   pyspark =
+  //       makePysparkContainerWithDefaultConf(
+  //           "testPysparkRddToTable", "/opt/spark_scripts/spark_rdd_to_table.py");
+  //   pyspark.setWaitStrategy(Wait.forLogMessage(".*ShutdownHookManager: Shutdown hook called.*",
+  // 1));
+  //   pyspark.start();
+
+  //   Path eventFolder = Paths.get("integrations/container/");
+  //   String startCsvEvent =
+  //       new String(readAllBytes(eventFolder.resolve("pysparkRddToCsvStartEvent.json")))
+  //           .replaceAll(
+  //               "https://github.com/OpenLineage/OpenLineage/tree/\\$VERSION/integration/spark",
+  //               OpenLineageClient.OPEN_LINEAGE_CLIENT_URI.toString());
+  //   String completeCsvEvent =
+  //       new String(readAllBytes(eventFolder.resolve("pysparkRddToCsvCompleteEvent.json")))
+  //           .replaceAll(
+  //               "https://github.com/OpenLineage/OpenLineage/tree/\\$VERSION/integration/spark",
+  //               OpenLineageClient.OPEN_LINEAGE_CLIENT_URI.toString());
+
+  //   String startTableEvent =
+  //       new String(readAllBytes(eventFolder.resolve("pysparkRddToTableStartEvent.json")))
+  //           .replaceAll(
+  //               "https://github.com/OpenLineage/OpenLineage/tree/\\$VERSION/integration/spark",
+  //               OpenLineageClient.OPEN_LINEAGE_CLIENT_URI.toString());
+
+  //   String completeTableEvent =
+  //       new String(readAllBytes(eventFolder.resolve("pysparkRddToTableCompleteEvent.json")))
+  //           .replaceAll(
+  //               "https://github.com/OpenLineage/OpenLineage/tree/\\$VERSION/integration/spark",
+  //               OpenLineageClient.OPEN_LINEAGE_CLIENT_URI.toString());
+
+  //   mockServerClient.verify(
+  //       request()
+  //           .withPath("/api/v1/lineage")
+  //           .withBody(json(startCsvEvent, MatchType.ONLY_MATCHING_FIELDS)),
+  //       request()
+  //           .withPath("/api/v1/lineage")
+  //           .withBody(json(completeCsvEvent, MatchType.ONLY_MATCHING_FIELDS)),
+  //       request()
+  //           .withPath("/api/v1/lineage")
+  //           .withBody(json(startTableEvent, MatchType.ONLY_MATCHING_FIELDS)),
+  //       request()
+  //           .withPath("/api/v1/lineage")
+  //           .withBody(json(completeTableEvent, MatchType.ONLY_MATCHING_FIELDS)));
+  // }
+
+  // @Test
+  // public void testPysparkSQLHiveTest() throws IOException, InterruptedException {
+  //   pyspark =
+  //       makePysparkContainerWithDefaultConf(
+  //           "testPysparkSQLHiveTest", "/opt/spark_scripts/spark_hive.py");
+  //   pyspark.setWaitStrategy(Wait.forLogMessage(".*ShutdownHookManager: Shutdown hook called.*",
+  // 1));
+  //   pyspark.start();
+
+  //   Path eventFolder = Paths.get("integrations/container/");
+
+  //   String startEvent =
+  //       new String(readAllBytes(eventFolder.resolve("pysparkHiveStartEvent.json")))
+  //           .replaceAll(
+  //               "https://github.com/OpenLineage/OpenLineage/tree/\\$VERSION/integration/spark",
+  //               OpenLineageClient.OPEN_LINEAGE_CLIENT_URI.toString());
+  //   String completeEvent =
+  //       new String(readAllBytes(eventFolder.resolve("pysparkHiveCompleteEvent.json")))
+  //           .replaceAll(
+  //               "https://github.com/OpenLineage/OpenLineage/tree/\\$VERSION/integration/spark",
+  //               OpenLineageClient.OPEN_LINEAGE_CLIENT_URI.toString());
+  //   mockServerClient.verify(
+  //       request()
+  //           .withPath("/api/v1/lineage")
+  //           .withBody(json(startEvent, MatchType.ONLY_MATCHING_FIELDS)),
+  //       request()
+  //           .withPath("/api/v1/lineage")
+  //           .withBody(json(completeEvent, MatchType.ONLY_MATCHING_FIELDS)));
+  // }
+
   @Test
-  public void testPysparkWordCountWithCliArgs() throws IOException, InterruptedException {
+  public void testPysparkSQLOverwriteDirHiveTest() throws IOException, InterruptedException {
     pyspark =
-        makePysparkContainer(
-            "--master",
-            "local",
-            "--conf",
-            "spark.openlineage.url="
-                + "http://openlineageclient:1080/api/v1/namespaces/testPysparkWordCountWithCliArgs",
-            "--conf",
-            "spark.extraListeners=" + OpenLineageSparkListener.class.getName(),
-            "--jars",
-            "/opt/libs/" + System.getProperty("openlineage.spark.jar"),
-            "/opt/spark_scripts/spark_word_count.py");
+        makePysparkContainerWithDefaultConf(
+            "testPysparkSQLHiveOverwriteDirTest", "/opt/spark_scripts/spark_overwrite_hive.py");
     pyspark.setWaitStrategy(Wait.forLogMessage(".*ShutdownHookManager: Shutdown hook called.*", 1));
     pyspark.start();
 
     Path eventFolder = Paths.get("integrations/container/");
+
     String startEvent =
-        new String(readAllBytes(eventFolder.resolve("pysparkWordCountWithCliArgsStartEvent.json")))
+        new String(readAllBytes(eventFolder.resolve("pysparkHiveOverwriteDirStartEvent.json")))
             .replaceAll(
                 "https://github.com/OpenLineage/OpenLineage/tree/\\$VERSION/integration/spark",
                 OpenLineageClient.OPEN_LINEAGE_CLIENT_URI.toString());
-
     String completeEvent =
-        new String(
-                readAllBytes(eventFolder.resolve("pysparkWordCountWithCliArgsCompleteEvent.json")))
+        new String(readAllBytes(eventFolder.resolve("pysparkHiveOverwriteDirCompleteEvent.json")))
             .replaceAll(
                 "https://github.com/OpenLineage/OpenLineage/tree/\\$VERSION/integration/spark",
                 OpenLineageClient.OPEN_LINEAGE_CLIENT_URI.toString());
@@ -149,62 +267,5 @@ public class SparkContainerIntegrationTest {
         request()
             .withPath("/api/v1/lineage")
             .withBody(json(completeEvent, MatchType.ONLY_MATCHING_FIELDS)));
-  }
-
-  @Test
-  public void testPysparkRddToTable() throws IOException, InterruptedException {
-    pyspark =
-        makePysparkContainer(
-            "--master",
-            "local",
-            "--conf",
-            "spark.openlineage.host=" + "http://openlineageclient:1080",
-            "--conf",
-            "spark.openlineage.namespace=testPysparkRddToTable",
-            "--conf",
-            "spark.extraListeners=" + OpenLineageSparkListener.class.getName(),
-            "--jars",
-            "/opt/libs/" + System.getProperty("openlineage.spark.jar"),
-            "/opt/spark_scripts/spark_rdd_to_table.py");
-    pyspark.setWaitStrategy(Wait.forLogMessage(".*ShutdownHookManager: Shutdown hook called.*", 1));
-    pyspark.start();
-
-    Path eventFolder = Paths.get("integrations/container/");
-    String startCsvEvent =
-        new String(readAllBytes(eventFolder.resolve("pysparkRddToCsvStartEvent.json")))
-            .replaceAll(
-                "https://github.com/OpenLineage/OpenLineage/tree/\\$VERSION/integration/spark",
-                OpenLineageClient.OPEN_LINEAGE_CLIENT_URI.toString());
-    String completeCsvEvent =
-        new String(readAllBytes(eventFolder.resolve("pysparkRddToCsvCompleteEvent.json")))
-            .replaceAll(
-                "https://github.com/OpenLineage/OpenLineage/tree/\\$VERSION/integration/spark",
-                OpenLineageClient.OPEN_LINEAGE_CLIENT_URI.toString());
-
-    String startTableEvent =
-        new String(readAllBytes(eventFolder.resolve("pysparkRddToTableStartEvent.json")))
-            .replaceAll(
-                "https://github.com/OpenLineage/OpenLineage/tree/\\$VERSION/integration/spark",
-                OpenLineageClient.OPEN_LINEAGE_CLIENT_URI.toString());
-
-    String completeTableEvent =
-        new String(readAllBytes(eventFolder.resolve("pysparkRddToTableCompleteEvent.json")))
-            .replaceAll(
-                "https://github.com/OpenLineage/OpenLineage/tree/\\$VERSION/integration/spark",
-                OpenLineageClient.OPEN_LINEAGE_CLIENT_URI.toString());
-
-    mockServerClient.verify(
-        request()
-            .withPath("/api/v1/lineage")
-            .withBody(json(startCsvEvent, MatchType.ONLY_MATCHING_FIELDS)),
-        request()
-            .withPath("/api/v1/lineage")
-            .withBody(json(completeCsvEvent, MatchType.ONLY_MATCHING_FIELDS)),
-        request()
-            .withPath("/api/v1/lineage")
-            .withBody(json(startTableEvent, MatchType.ONLY_MATCHING_FIELDS)),
-        request()
-            .withPath("/api/v1/lineage")
-            .withBody(json(completeTableEvent, MatchType.ONLY_MATCHING_FIELDS)));
   }
 }
