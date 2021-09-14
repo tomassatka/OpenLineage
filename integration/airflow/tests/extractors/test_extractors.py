@@ -1,3 +1,5 @@
+import os
+
 from airflow.contrib.operators.bigquery_operator import BigQueryOperator
 from airflow.contrib.operators.snowflake_operator import SnowflakeOperator
 from airflow.operators.postgres_operator import PostgresOperator
@@ -18,3 +20,11 @@ def test_all_extractors():
 
     for extractor in extractors:
         assert Extractors().get_extractor_class(extractor)
+
+
+def test_env_extractors():
+    os.environ['OPENLINEAGE_EXTRACTOR_TestOperator'] = \
+        'openlineage.airflow.extractors.extractors.PostgresExtractor'
+
+    assert len(Extractors().extractors) == 5
+    del os.environ['OPENLINEAGE_EXTRACTOR_TestOperator']

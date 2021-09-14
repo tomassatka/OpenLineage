@@ -184,8 +184,23 @@ def test_integration_great_expectations():
         sys.exit(1)
 
 
+def test_integration_custom_extractor():
+    DAG_ID = 'custom_extractor'
+
+    # (1) Wait for DAG to complete
+    wait_for_dag(DAG_ID)
+    # (2) Read expected events
+    with open('requests/custom_extractor.json', 'r') as f:
+        expected_requests = json.load(f)
+
+    # (3) Verify events emitted
+    if not check_events_emitted(expected_requests):
+        sys.exit(1)
+
+
 if __name__ == '__main__':
     setup_db()
-    test_integration_great_expectations()
-    test_integration_postgres()
-    test_integration_bigquery()
+    test_integration_custom_extractor()
+    # test_integration_great_expectations()
+    # test_integration_postgres()
+    # test_integration_bigquery()
